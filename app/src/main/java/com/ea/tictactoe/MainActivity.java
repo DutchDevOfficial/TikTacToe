@@ -2,7 +2,14 @@ package com.ea.tictactoe;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -24,6 +31,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private int player1Points = 0;
     private int player2Points = 0;
+
+    //Notifications
+    private static final String channelID = "test channel";
+    private NotificationManagerCompat compatManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +72,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 resetBoard();
             }
         });
+
+        // notifications
+        //Notifications - requires API level 24
+        NotificationChannel testChannel = null;  //Channel id, channel name, channel importance
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            testChannel = new NotificationChannel(channelID,"test Channel", NotificationManager.IMPORTANCE_HIGH);
+
+            testChannel.setDescription("This is a test channel");
+
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(testChannel);
+        }
+        compatManager = NotificationManagerCompat.from(this);
     }
 
     @Override
@@ -143,6 +167,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Toast.makeText(this, "Player 1 wins!", Toast.LENGTH_SHORT).show();
         UpdatePointsText();
         resetBoard();
+
+        notification();
     }
 
     private void player2Wins(){
@@ -190,5 +216,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         player1Points = savedInstanceState.getInt("player1Points");
         player2Points = savedInstanceState.getInt("player2Points");
         player1Turn = savedInstanceState.getBoolean("player1Turn");
+    }
+
+    private void notification(){
+        Notification notification = new NotificationCompat.Builder(this,channelID)
+                .setSmallIcon(R.drawable.notification_icon).setContentTitle("Player1 WON!")
+                .setContentText("we got a winner!").setCategory(NotificationCompat.CATEGORY_EVENT).build();
+
+        compatManager.notify(1,notification);
+
+//        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+//        NotificationManager.notify().mNotificationManager.notify(001, mBuilder.build());
     }
 }
